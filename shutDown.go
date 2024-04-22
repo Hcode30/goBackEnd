@@ -15,7 +15,7 @@ func PrepareShutDown(server *http.Server) {
 	signal.Notify(c, syscall.SIGINT, syscall.SIGKILL)
 	go func() {
 		<-c
-		println("[WARNING]: Termination Signal Recieved!")
+		println("\n[WARNING]: Termination Signal Recieved!")
 		res := saveAllData(data)
 		if res {
 			println("[INFO]: all data saved\n[WARNING]: Quiting...")
@@ -26,7 +26,10 @@ func PrepareShutDown(server *http.Server) {
 		defer cancel()
 		server.Shutdown(ctx)
 	}()
+}
 
+
+func periodicalSave() {
 	go func() {
 		for {
 			time.Sleep(1 * time.Minute)

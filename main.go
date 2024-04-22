@@ -16,6 +16,7 @@ func main() {
 	mux.HandleFunc("/view/", MyHandler(ViewHandler))
 	mux.HandleFunc("/edit/", MyHandler(EditHandler))
 	mux.HandleFunc("/save/", MyHandler(SaveHandler))
+  periodicalSave()
 	PrepareShutDown(server)
 	log.Fatal(myServer.ListenAndServe())
 }

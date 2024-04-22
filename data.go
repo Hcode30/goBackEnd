@@ -62,7 +62,7 @@ func loadAllData(dataDir string) []Page {
 		log.Printf("[Error] opening %s : %s", dataDir, err)
 		panic(err)
 	}
-	files, err := f.Readdir(10)
+	files, err := f.Readdir(0)
 	if err != nil {
 		log.Printf("[Error] opening files in %s : %s", dataDir, err)
 		panic(err)
