@@ -3,8 +3,21 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 )
 
+func ViewAllHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplates(w, "views", data)
+}
+
+func renderTemplates(w http.ResponseWriter, tmpl string, page []Page) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", page)
+	if err != nil {
+		log.Printf("[Error] in viewing all pages: %s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
 
 func ViewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	page, err := loadPage(title)
@@ -17,7 +30,9 @@ func ViewHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 func SaveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := r.FormValue("body")
-	page := &Page{Title: title, Body: []byte(body)}
+  println("body", body)
+	author := r.FormValue("author")
+	page := &Page{Title: title, Body: []byte(body), Author: author, CreatedAt: time.Now(), ModifiedAt: time.Now()}
 	if len(body) != 0 {
 		page.save()
 	}
@@ -28,7 +43,7 @@ func SaveHandler(w http.ResponseWriter, r *http.Request, title string) {
 func EditHandler(w http.ResponseWriter, r *http.Request, title string) {
 	page, err := loadPage(title)
 	if err != nil {
-		page = &Page{Title: title}
+		page = &Page{Title: title, CreatedAt: time.Now(), ModifiedAt: time.Now()}
 	}
 	renderTemplate(w, "edit", page)
 }

@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -16,12 +18,15 @@ const (
 )
 
 type Page struct {
-	Title string
-	Body  []byte
+	Title      string
+	Body       []byte
+	Author     string
+	CreatedAt  time.Time
+	ModifiedAt time.Time
 }
 
 var (
-	templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
+	templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html", "templates/views.html"))
 	validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 	data      = loadAllData(dataDir)
 	dataMutex sync.Mutex
@@ -33,6 +38,7 @@ func (p *Page) save() {
 	for i, page := range data {
 		if page.Title == p.Title {
 			data[i].Body = p.Body
+			data[i].Author = p.Author
 			return
 		}
 	}
@@ -40,13 +46,18 @@ func (p *Page) save() {
 }
 
 func saveAllData(data []Page) bool {
+	if len(data) == 0 {
+		println("[INFO]: No data to save")
+		return false
+	}
 	dataMutex.Lock()
 	defer dataMutex.Unlock()
 	println("[INFO]: Saving", len(data), "pages...")
 	for _, page := range data {
 		filepath := dataDir + page.Title + ".txt"
 		println("[INFO]: saving", filepath)
-		err := os.WriteFile(filepath, page.Body, 0600)
+		data := fmt.Sprintf("[%s]\n[%s]\n%s", page.Author, page.CreatedAt.Format("2006-01-02"), page.Body)
+		err := os.WriteFile(filepath, []byte(data), 0600)
 		if err != nil {
 			return false
 		}
@@ -75,12 +86,57 @@ func loadAllData(dataDir string) []Page {
 			if err != nil {
 				log.Printf("[Error] in %s: %s", page.Title, err)
 			}
-			page.Body = body
+			author, dateCreated, displayedData, err := extractMetadata(string(body))
+			if err != nil {
+				log.Printf("[Error]: %s", err)
+			}
+			page.CreatedAt = dateCreated
+			page.ModifiedAt = v.ModTime()
+			page.Author = author
+			page.Body = []byte(displayedData)
 			data = append(data, page)
 		}
 	}
-	println("[INFO]: Finished loading data with", len(data), "pages")
+	if len(data) == 0 {
+		println("[INFO]: No data found")
+	} else {
+		println("[INFO]: Finished loading data with", len(data), "pages")
+	}
 	return data
+}
+func extractMetadata(body string) (string, time.Time, string, error) {
+    lines := strings.SplitN(body, "\n", 3) // Split into max 3 lines
+
+    if len(lines) < 2 {
+        return "", time.Time{}, "", fmt.Errorf("invalid file format: missing metadata lines")
+    }
+
+    author := strings.TrimSpace(lines[0]) // Trim leading/trailing whitespace
+    author = author[1:len(author)-1]      // Remove leading/trailing brackets
+
+    dateCreated := strings.TrimSpace(lines[1])
+    dateCreated = dateCreated[1:len(dateCreated)-1]
+
+    // Parse date into time.Time (assuming specific format)
+    t, err := parseDate(dateCreated)
+    if err != nil {
+        return author, time.Time{}, "", fmt.Errorf("invalid date format: %s, error: %w", dateCreated, err)
+    }
+
+    // Extract displayed data (assuming it starts from line 3)
+    displayedData := ""
+    if len(lines) > 2 {
+        displayedData = strings.Join(lines[2:], "\n") // Join remaining lines
+    }
+
+    return author, t, displayedData, nil
+}
+
+func parseDate(dateStr string) (time.Time, error) {
+    // Replace the placeholder validation with your actual date format
+    // Here's an example for YYYY-MM-DD format:
+    layout := "2006-01-02" // Adjust the layout based on your actual date format
+    return time.Parse(layout, dateStr)
 }
 
 func loadPage(title string) (*Page, error) {

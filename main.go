@@ -14,9 +14,10 @@ func main() {
 	server := myServer.Init()
 	mux := myServer.mux
 	mux.HandleFunc("/view/", MyHandler(ViewHandler))
+	mux.HandleFunc("/viewAll/",ViewAllHandler)
 	mux.HandleFunc("/edit/", MyHandler(EditHandler))
-	mux.HandleFunc("/save/", MyHandler(SaveHandler))
-  periodicalSave()
+	mux.HandleFunc("POST /save/", MyHandler(SaveHandler))
+	periodicalSave()
 	PrepareShutDown(server)
 	log.Fatal(myServer.ListenAndServe())
 }

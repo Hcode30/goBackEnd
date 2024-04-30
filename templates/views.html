@@ -1,0 +1,68 @@
+<html>
+
+<head>
+  <title>HTML</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #29C;
+      color :black;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    a {
+      text-decoration: none;
+      color: #4CAF50;
+    }
+  </style>
+</head>
+
+<body>
+  <section>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Date Created</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range . }}
+        <tr>
+          <td>{{ .Title }}</td>
+          <td>{{ .Author }}</td>
+          <td>
+            {{with .CreatedAt}}
+            {{ .Local.Format "2006-01-02" }}
+            {{end}}
+          </td>
+          <td><a href="/view/{{.Title}}">Read</a></td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </section>
+</body>
+
+</html>
