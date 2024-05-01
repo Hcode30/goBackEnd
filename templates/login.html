@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Log In</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 2em;
+      color: #29C;
+      background-color: #eee;
+      border-radius: 5px;
+      padding: 8px;
+      border: 1px solid #333;
+    }
+
+    form {
+      background-color: #f2f2f2;
+      padding: 8px;
+      border-radius: 5px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      margin-right: 10px;
+    }
+
+    .nameField {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      margin: 10px;
+    }
+
+    label {
+      width: 100px;
+    }
+
+    input {
+      width: 200px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #333;
+    }
+
+    input[type="submit"] {
+      width: 100px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #333;
+      background-color: teal;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Log In</h1>
+  <!-- firstName -->
+  <form action="/login" method="post">
+    <!-- email -->
+    <p class="nameField">
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email">
+    </p>
+    <!-- password -->
+    <p class="nameField">
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password">
+    </p>
+    <!-- submit -->
+    <p>
+      <input type="submit" value="Log in">
+    </p>
+  </form>
