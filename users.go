@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"math"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -26,10 +27,41 @@ type User struct {
 	Avatar    string
 	Role      string
 	Messages  []Message
+	lastSeen  time.Time
+}
+
+func testUserIDs(iters int) {
+	fail := 0
+	success := 0
+	for i := 0; i < iters; i++ {
+		id := getID()
+		idLen := len(strconv.FormatUint(id, 10))
+		if idLen != 18 {
+			fail++
+			println("failed id", id, "-- idLen", idLen)
+		} else {
+			success++
+		}
+	}
+	println("failed generated IDs: ", fail)
+	println("successful generated IDs: ", success)
+}
+
+func getID() uint64 {
+	id := rand.Uint64()
+	idLen := len(strconv.FormatUint(id, 10))
+	if idLen != 18 {
+		if idLen < 18 {
+			id = id * uint64(math.Pow10(18-idLen))
+		} else {
+			id = id / uint64(math.Pow10(idLen-18))
+		}
+	}
+	return id
 }
 
 func MakeUser(email, firstName, lastName, password string) (*User, error) {
-	id := rand.Uint64()
+	id := getID()
 	// validate first firstName
 	err := checkName(firstName)
 	if err != nil {
@@ -199,38 +231,35 @@ func hashPassword(password string) (Password, error) {
 	}, nil
 }
 
-
 func (u *User) AddFriend(friend *User) {
-  u.Friends = append(u.Friends, friend.ID)
+	u.Friends = append(u.Friends, friend.ID)
 }
-
 
 func (u *User) SendMessage(receiver *User, content string) {
-  message := Message{
-    ID:         rand.Uint64(),
-    SenderID:   u.ID,
-    ReceiverID: receiver.ID,
-    Content:    content,
-    Time:       time.Now(),
-  }
-  u.Messages = append(u.Messages, message)
-  receiver.Messages = append(receiver.Messages, message)
+	message := Message{
+		ID:         rand.Uint64(),
+		SenderID:   u.ID,
+		ReceiverID: receiver.ID,
+		Content:    content,
+		Time:       time.Now(),
+	}
+	u.Messages = append(u.Messages, message)
+	receiver.Messages = append(receiver.Messages, message)
 }
-
 
 func (u *User) DeleteFriend(friend *User) {
-  for i, id := range u.Friends {
-    if id == friend.ID {
-      u.Friends = append(u.Friends[:i], u.Friends[i+1:]...)
-      break
-    }
-  }
+	for i, id := range u.Friends {
+		if id == friend.ID {
+			u.Friends = append(u.Friends[:i], u.Friends[i+1:]...)
+			break
+		}
+	}
 }
 func GetUser(email string) (*User, error) {
-  for _, user := range users {
-    if user.Email == email {
-      return &user, nil
-    }
-  }
-  return nil, errors.New("user not found")
+	for _, user := range users {
+		if user.Email == email {
+			return &user, nil
+		}
+	}
+	return nil, errors.New("user not found")
 }

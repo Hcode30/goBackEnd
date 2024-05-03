@@ -4,31 +4,40 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 )
 
 // redirect to login page if not logged in successfully
-// redirect to viewAll page if logged in successfully
+// redirect to home page if logged in successfu
 func logInHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		email := r.FormValue("email")
-		password := r.FormValue("password")
-		user, err := GetUser(email)
-		if err != nil {
-      log.Println("[ERROR]: ", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = verifyPassword(user, password)
-		if err != nil {
-      log.Println("[ERROR]: ", err)
-      // reload the login page with the email typed
-      http.Redirect(w, r, "/login/", http.StatusNotFound)
-			return
-		}
-    log.Println("[INFO]: Logged in successfully")
-		http.Redirect(w, r, "/viewAll/", http.StatusFound)
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	user, err := GetUser(email)
+	if err != nil {
+		log.Println("[ERROR]: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	renderTemplate(w, "login", nil)
+	err = verifyPassword(user, password)
+	if err != nil {
+		log.Println("[ERROR]: ", err)
+		// reload the login page with the email typed
+		http.Redirect(w, r, "/login/", http.StatusNotFound)
+		return
+	}
+	log.Println("[INFO]: Logged in successfully")
+	t := time.Now()
+	user.lastSeen = t
+	// clear cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "storage",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+	addCookie(w, "token", generateToken(*user, t), "/")
+	http.Redirect(w, r, "/home", http.StatusFound)
 }
 
 func verifyPassword(user *User, password string) error {
@@ -50,6 +59,10 @@ func verifyPassword(user *User, password string) error {
 }
 
 func logInPageHandler(w http.ResponseWriter, r *http.Request) {
+  if verifyCookie(r) {
+    http.Redirect(w, r, "/home", http.StatusFound)
+    return
+  }
 	if r.Method == http.MethodGet {
 		templates.ExecuteTemplate(w, "login.html", nil)
 	}

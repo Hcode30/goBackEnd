@@ -26,10 +26,13 @@ type Page struct {
 }
 
 var (
-	templates = template.Must(template.ParseFiles("templates/edit.html",
-  "templates/view.html",
-  "templates/views.html",
+	templates = template.Must(template.ParseFiles(
+  // "templates/edit.html",
+  // "templates/view.html",
+  // "templates/views.html",
+  "templates/home.html",
   "templates/signup.html",
+  "templates/components.html",
   "templates/login.html"))
 	validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 	data      = loadAllData(dataDir)

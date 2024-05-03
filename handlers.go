@@ -6,6 +6,27 @@ import (
 	"time"
 )
 
+
+
+func verifyCookie(r *http.Request) bool {
+  token, err := getCookie(r,"token")
+  if err != nil {
+    log.Println("[ERROR]: ", err)
+    return false
+  }
+  return verifyToken(token)
+}
+
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
+  if !verifyCookie(r) {
+    http.Redirect(w, r, "/login/", http.StatusFound)
+    return
+  }
+  renderTemplates(w, "home", nil)
+}
+
+
+
 func ViewAllHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplates(w, "views", data)
 }

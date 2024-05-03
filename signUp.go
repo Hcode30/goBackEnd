@@ -9,6 +9,7 @@ var users = []User{}
 
 // redirect to viewAll page if signed up successfully
 func signUpHandler(w http.ResponseWriter, r *http.Request) {
+
 	if r.Method == http.MethodPost {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
@@ -25,12 +26,16 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("[INFO]: Signed Up successfully")
 		log.Println("User: ", user.UserName, "Email: ", user.Email,
 			"Password: ", password)
-		http.Redirect(w, r, "/viewAll/", http.StatusFound)
+		http.Redirect(w, r, "/login/", http.StatusFound)
 		// }
 		renderTemplate(w, "signup", nil)
 	}
 }
 func signUpPageHandler(w http.ResponseWriter, r *http.Request) {
+  if verifyCookie(r) {
+    http.Redirect(w, r, "/home", http.StatusFound)
+    return
+  }
 	if r.Method == http.MethodGet {
 		templates.ExecuteTemplate(w, "signup.html", nil)
 	}
